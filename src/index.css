@@ -1,0 +1,17 @@
+@import url('https://fonts.googleapis.com/css2?family=Bungee+Inline&family=Press+Start+2P&display=swap');
+
+/* src/index.css */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Optional: Add external font imports here 
+  Example using the retro fonts we used previously:
+*/
+
+/* Apply base font settings globally */
+body {
+  font-family: 'Bungee Inline', sans-serif;
+  scroll-behavior: smooth;
+}
