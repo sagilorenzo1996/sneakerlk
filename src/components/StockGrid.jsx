@@ -87,10 +87,10 @@ import productsCsv from '../../public/products.txt?url'; // Import TXT as a URL
           price: `$${product.price}.00`,
           status: product.status, // Dynamically set status from CSV
           whatsappText: `Inquiring about ${product.name}`,
-          image1: product.image1,
-          image2: product.image2,
-          image3: product.image3,
-          image4: product.image4,
+          image1: product.image1.replace('/public', ''), // Remove /public prefix
+          image2: product.image2 ? product.image2.replace('/public', '') : undefined,
+          image3: product.image3 ? product.image3.replace('/public', '') : undefined,
+          image4: product.image4 ? product.image4.replace('/public', '') : undefined,
         }));
 
         setProducts(formattedProducts);

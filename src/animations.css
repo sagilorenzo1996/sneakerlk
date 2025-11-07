@@ -5,7 +5,7 @@
     position: absolute;
     width: 50px; /* Adjust size as needed */
     height: 50px; /* Adjust size as needed */
-    background-image: url('/public/animation/shoe.png'); /* Placeholder for a shoe icon */
+    background-image: url('/animation/shoe.png'); /* Placeholder for a shoe icon */
     background-size: contain;
     background-repeat: no-repeat;
     opacity: 0.7;

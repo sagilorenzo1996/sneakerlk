@@ -4,6 +4,7 @@ import Socials from './components/Socials';
 import StockGrid from './components/StockGrid';
 import PreorderForm from './components/PreorderForm';
 import BouncingShoes from './components/BouncingShoes';
+import logo from '../public/logo.png';
 
 function App() {
   return (
@@ -34,7 +35,7 @@ function App() {
       </section>
 
       <footer>
-        <img src="/public/logo.png" alt="Retro Kicks Logo" style={{ height: '100px', marginBottom: '10px' }} />
+        <img src={logo} alt="Retro Kicks Logo" style={{ height: '100px', marginBottom: '10px' }} />
         <p>&copy; 2025 sneaker.lk. All Rights Reserved. Built with **8-BIT LOVE**.</p>
       </footer>
     </div>
