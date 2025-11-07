@@ -1,7 +1,7 @@
 // src/components/StockGrid.jsx
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import productsCsv from '../../public/products.csv?url'; // Import CSV as a URL
+import productsCsv from '../../public/products.txt?url'; // Import TXT as a URL
 
   const whatsappBaseUrl = "https://wa.me/YOUR_WHATSAPP_NUMBER?text=";
   
