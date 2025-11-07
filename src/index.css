@@ -10,8 +10,209 @@
   Example using the retro fonts we used previously:
 */
 
-/* Apply base font settings globally */
+/* --- General & Retro Styles from single.html --- */
+:root {
+    --primary-color: #FF0054; /* Hot Pink/Neon */
+    --secondary-color: #00FFC0; /* Cyan/Teal */
+    --accent-color: #FFD700; /* Gold/Yellow */
+    --bg-color: #2D2D2D; /* Dark Grey/Black */
+    --text-color: #FFFFFF;
+}
+
 body {
-  font-family: 'Bungee Inline', sans-serif;
-  scroll-behavior: smooth;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+section {
+    padding: 80px 20px;
+    min-height: 100vh;
+    border-bottom: 5px solid var(--secondary-color);
+}
+
+h1, h2, h3 {
+    font-family: 'Press Start 2P', cursive;
+    text-align: center;
+    color: var(--primary-color);
+    text-shadow: 4px 4px 0 var(--secondary-color); /* Retro 3D effect */
+    margin-bottom: 40px;
+}
+
+h1 { font-size: 3em; }
+h2 { font-size: 2em; }
+h3 { font-size: 1.5em; }
+
+/* --- Navigation --- */
+.navbar {
+    position: sticky;
+    top: 0;
+    background-color: var(--bg-color);
+    border-bottom: 3px solid var(--accent-color);
+    z-index: 100;
+    padding: 10px 0;
+    text-align: center;
+}
+
+.navbar a {
+    color: var(--text-color);
+    text-decoration: none;
+    margin: 0 15px;
+    padding: 5px 10px;
+    display: inline-block;
+    transition: color 0.3s, background-color 0.3s;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8em;
+}
+
+.navbar a:hover {
+    color: var(--primary-color);
+    background-color: var(--accent-color);
+    transform: scale(1.05);
+}
+
+/* --- Buttons & Links --- */
+.btn {
+    display: inline-block;
+    padding: 15px 30px;
+    margin: 10px;
+    background-color: var(--primary-color);
+    color: var(--text-color);
+    text-decoration: none;
+    border: 4px solid var(--text-color);
+    cursor: pointer;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1em;
+    box-shadow: 5px 5px 0 var(--accent-color);
+    transition: all 0.2s;
+}
+
+.btn:hover {
+    transform: translate(2px, 2px);
+    box-shadow: 3px 3px 0 var(--accent-color);
+}
+
+.shoe-nav-btn {
+    padding: 8px 15px;
+    font-size: 0.9em;
+    /* You can customize other styles here if needed, 
+       but it will inherit most from .btn by default */
+}
+
+.whatsapp-btn {
+    background-color: #25D366; /* WhatsApp Green */
+}
+
+/* --- Social Section --- */
+#social-proof {
+    text-align: center;
+    background: repeating-linear-gradient(
+        45deg,
+        var(--bg-color),
+        var(--bg-color) 10px,
+        #1e1e1e 10px,
+        #1e1e1e 20px
+    ); /* Retro Pattern */
+}
+
+.social-links a {
+    font-size: 2em;
+    margin: 0 20px;
+    color: var(--text-color);
+    transition: color 0.3s;
+}
+
+.social-links a:hover {
+    color: var(--primary-color);
+}
+
+/* --- Stock Display --- */
+#available-stock {
+    background-color: #1e1e1e;
+    text-align: center;
+}
+
+.shoe-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    margin-top: 50px;
+}
+
+.shoe-card {
+    background-color: var(--bg-color);
+    padding: 20px;
+    border: 3px solid var(--secondary-color);
+    box-shadow: 6px 6px 0 var(--primary-color);
+    text-align: left;
+    transition: transform 0.3s;
+}
+
+.shoe-card:hover {
+    transform: scale(1.03);
+    cursor: pointer;
+}
+
+.shoe-card img {
+    width: 100%;
+    height: 280px; /* Fixed height for uniformity */
+    object-fit: cover; /* Crop to fit, maintaining aspect ratio */
+    border: 2px dashed var(--accent-color);
+    margin-bottom: 15px;
+}
+
+.shoe-card h3 {
+    margin: 0 0 5px 0;
+    color: var(--accent-color);
+    text-shadow: none;
+    font-family: 'Bungee Inline', sans-serif;
+    text-align: left;
+}
+
+.shoe-card p {
+    margin: 0;
+    font-size: 1.1em;
+    color: #ccc;
+}
+
+/* --- Pre-Order Section --- */
+#preorder {
+    background-color: #3a3a3a;
+    text-align: center;
+}
+
+#preorder form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 30px;
+    border: 5px solid var(--primary-color);
+    box-shadow: 8px 8px 0 var(--secondary-color);
+    background-color: var(--bg-color);
+}
+
+#preorder input, #preorder select {
+    width: 90%;
+    padding: 15px;
+    margin-bottom: 20px;
+    background-color: #1e1e1e;
+    color: var(--text-color);
+    border: 2px solid var(--accent-color);
+    font-family: sans-serif; /* Readable font for input */
+    font-size: 1em;
+}
+
+/* --- Footer --- */
+footer {
+    text-align: center;
+    padding: 20px;
+    border-top: 5px solid var(--primary-color);
+    font-size: 0.8em;
+    background-color: var(--bg-color);
 }

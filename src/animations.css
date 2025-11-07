@@ -1,0 +1,20 @@
+/* src/animations.css */
+
+
+.bouncing-shoe {
+    position: absolute;
+    width: 50px; /* Adjust size as needed */
+    height: 50px; /* Adjust size as needed */
+    background-image: url('/public/animation/shoe.png'); /* Placeholder for a shoe icon */
+    background-size: contain;
+    background-repeat: no-repeat;
+    opacity: 0.7;
+    z-index: -1; /* Ensure it stays in the background */
+}
+
+@media (max-width: 768px) {
+    .bouncing-shoe {
+        width: 80px; /* Larger size for mobile */
+        height: 80px; /* Larger size for mobile */
+    }
+}
