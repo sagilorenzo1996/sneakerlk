@@ -1,6 +1,7 @@
 // src/components/StockGrid.jsx
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
+import productsCsv from '../../public/products.csv?url'; // Import CSV as a URL
 
   const whatsappBaseUrl = "https://wa.me/YOUR_WHATSAPP_NUMBER?text=";
   
@@ -69,7 +70,7 @@ import Papa from 'papaparse';
 
     useEffect(() => {
       const fetchProducts = async () => {
-        const response = await fetch('/public/products.csv');
+        const response = await fetch(productsCsv);
         const reader = response.body.getReader();
         const result = await reader.read();
         const decoder = new TextDecoder('utf-8');
