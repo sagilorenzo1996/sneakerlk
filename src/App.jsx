@@ -15,7 +15,7 @@ function App() {
         <a href="#social-proof">SOCIALS</a>
         <a href="#available-stock">STOCK</a>
         <a href="#preorder">PRE-ORDER</a>
-        <a className="whatsapp-btn" href="https://wa.me/YOUR_WHATSAPP_NUMBER" target="_blank" style={{ marginLeft: '30px' }}>CHAT NOW (FASTEST)</a>
+        <a className="whatsapp-btn" href="https://wa.me/+94704599664" target="_blank">CHAT NOW (FASTEST)</a>
       </div>
 
       <section id="hero" className="container">

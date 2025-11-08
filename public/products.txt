@@ -1,7 +1,0 @@
-name,price,image1,image2,image3,image4,status
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,OUT OF STOCK
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,OUT OF STOCK
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,IN STOCK NOW!
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,IN STOCK NOW!
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,IN STOCK NOW!
-nike air force 1,120,/public/shoes/nike_air_force_1/image.png,/public/shoes/nike_air_force_1/image_2.png,/public/shoes/nike_air_force_1/image_3.png,/public/shoes/nike_air_force_1/image_4.png,IN STOCK NOW!

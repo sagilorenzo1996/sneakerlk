@@ -4,16 +4,44 @@ import { useState } from 'react';
 const PreorderForm = () => {
   const [message, setMessage] = useState('');
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     const form = event.target;
     
     const name = form.elements.name.value;
     const model = form.elements.shoe_model.value;
     const phone = form.elements.phone.value;
+    const email = form.elements.email.value;
+    const size = form.elements.size.value;
+    const details = form.elements.details.value;
 
-    // Simulate form submission logic
-    setMessage(`**SUCCESS!** Thanks, ${name}! We'll contact you on ${phone} about the ${model} ASAP!`);
+    const formData = {
+      name,
+      model,
+      phone,
+      email,
+      size,
+      details,
+    };
+
+    try {
+      const response = await fetch('https://formspree.io/f/mvgdpalr', { // Replace with your actual API endpoint
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (response.ok) {
+        setMessage(`**SUCCESS!** Thanks, ${name}! We'll contact you on ${phone} about the ${model} ASAP!`);
+      } else {
+        setMessage(`**ERROR!** Failed to submit pre-order. Please try again.`);
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setMessage(`**ERROR!** Something went wrong. Please try again.`);
+    }
     
     // Clear the form
     form.reset(); 

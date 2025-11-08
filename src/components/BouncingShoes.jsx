@@ -13,15 +13,23 @@ const BouncingShoes = () => {
     container.innerHTML = ''; // Clear existing shoes
     shoesRef.current = []; // Clear previous state
 
-    const shoeSize = 50; // px, needs to match CSS
+    let dynamicShoeSize = 50; // Default, will be updated
 
     for (let i = 0; i < shoeCount; i++) {
       const shoe = document.createElement('div');
       shoe.className = 'bouncing-shoe';
+      container.appendChild(shoe);
+
+      // Get the actual rendered size of the shoe
+      if (i === 0) { // Only need to do this once
+        dynamicShoeSize = shoe.offsetWidth; 
+      }
       
+      const containerRect = container.getBoundingClientRect();
+
       // Initial random position and velocity
-      const initialLeft = Math.random() * (window.innerWidth - shoeSize);
-      const initialTop = Math.random() * (window.innerHeight - shoeSize);
+      const initialLeft = Math.random() * (containerRect.width - dynamicShoeSize);
+      const initialTop = Math.random() * (containerRect.height - dynamicShoeSize);
       let velocityX = (Math.random() - 0.5) * 1; // Reduced from 2 to 1
       let velocityY = (Math.random() - 0.5) * 1; // Reduced from 2 to 1
       let rotation = Math.random() * 360; // Initial random rotation
@@ -35,7 +43,6 @@ const BouncingShoes = () => {
       shoe.style.top = `${initialTop}px`;
       shoe.style.transform = `rotate(${rotation}deg)`;
 
-      container.appendChild(shoe);
       shoesRef.current.push({ element: shoe, x: initialLeft, y: initialTop, velocityX, velocityY, rotation, rotationSpeed });
     }
 
@@ -50,13 +57,13 @@ const BouncingShoes = () => {
         rotation += rotationSpeed; // Update rotation
 
         // Collision detection with container edges
-        if (x + shoeSize > containerRect.width || x < 0) {
+        if (x + dynamicShoeSize > containerRect.width || x < 0) {
           velocityX *= -1; // Reverse horizontal direction
-          x = Math.max(0, Math.min(x, containerRect.width - shoeSize)); // Keep within bounds
+          x = Math.max(0, Math.min(x, containerRect.width - dynamicShoeSize)); // Keep within bounds
         }
-        if (y + shoeSize > containerRect.height || y < 0) {
+        if (y + dynamicShoeSize > containerRect.height || y < 0) {
           velocityY *= -1; // Reverse vertical direction
-          y = Math.max(0, Math.min(y, containerRect.height - shoeSize)); // Keep within bounds
+          y = Math.max(0, Math.min(y, containerRect.height - dynamicShoeSize)); // Keep within bounds
         }
 
         element.style.left = `${x}px`;

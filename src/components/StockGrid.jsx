@@ -1,9 +1,9 @@
 // src/components/StockGrid.jsx
 import React, { useState, useEffect } from 'react';
 import Papa from 'papaparse';
-import productsCsv from '../../public/products.txt?url'; // Import TXT as a URL
+import productsCsv from '../../public/products.csv?url'; // Import CSV as a URL
 
-  const whatsappBaseUrl = "https://wa.me/YOUR_WHATSAPP_NUMBER?text=";
+  const whatsappBaseUrl = "https://wa.me/+94704599664?text=";
   
   const ShoeCard = ({ shoe }) => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
@@ -84,7 +84,7 @@ import productsCsv from '../../public/products.txt?url'; // Import TXT as a URL
         const formattedProducts = parsedData.data.map(product => ({
           id: product.name, // Using name as a simple unique ID for now
           name: product.name,
-          price: `$${product.price}.00`,
+          price: `Rs.${product.price}.00`,
           status: product.status, // Dynamically set status from CSV
           whatsappText: `Inquiring about ${product.name}`,
           image1: product.image1.replace('/public', ''), // Remove /public prefix
