@@ -55,9 +55,11 @@ def init_db() -> None:
                 post_time           TEXT NOT NULL DEFAULT '09:00',
                 status              TEXT NOT NULL DEFAULT 'active',
                 workflow_configured INTEGER NOT NULL DEFAULT 0,
+                workflow_type       TEXT NOT NULL DEFAULT 'ai_full',
                 posts_per_run       INTEGER NOT NULL DEFAULT 1,
                 caption_prompt      TEXT NOT NULL DEFAULT '',
                 image_prompt        TEXT NOT NULL DEFAULT '',
+                reference_images    TEXT NOT NULL DEFAULT '[]',
                 created_at          TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
 
@@ -212,12 +214,13 @@ def delete_profile(profile_id: int) -> None:
 
 def create_pipeline(profile_id: int, name: str, platforms: list,
                     languages: list, schedule: str = "manual",
-                    post_time: str = "09:00") -> dict:
+                    post_time: str = "09:00",
+                    workflow_type: str = "ai_full") -> dict:
     with _connect() as conn:
         cursor = conn.execute(
-            "INSERT INTO pipelines (profile_id, name, platforms, languages, schedule, post_time) "
-            "VALUES (?, ?, ?, ?, ?, ?)",
-            (profile_id, name, json.dumps(platforms), json.dumps(languages), schedule, post_time),
+            "INSERT INTO pipelines (profile_id, name, platforms, languages, schedule, post_time, workflow_type) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (profile_id, name, json.dumps(platforms), json.dumps(languages), schedule, post_time, workflow_type),
         )
         conn.commit()
         row = conn.execute("SELECT * FROM pipelines WHERE id = ?", (cursor.lastrowid,)).fetchone()
@@ -241,8 +244,8 @@ def get_pipeline(pipeline_id: int) -> dict | None:
 
 def update_pipeline(pipeline_id: int, **kwargs) -> dict | None:
     allowed = {"name", "platforms", "languages", "schedule", "post_time",
-               "status", "workflow_configured", "posts_per_run",
-               "caption_prompt", "image_prompt"}
+               "status", "workflow_configured", "workflow_type", "posts_per_run",
+               "caption_prompt", "image_prompt", "reference_images"}
     fields = {}
     for k, v in kwargs.items():
         if k not in allowed:
@@ -268,8 +271,9 @@ def delete_pipeline(pipeline_id: int) -> None:
 
 
 def _deserialize_pipeline(p: dict) -> dict:
-    p["platforms"] = json.loads(p["platforms"]) if isinstance(p["platforms"], str) else p["platforms"]
-    p["languages"] = json.loads(p["languages"]) if isinstance(p["languages"], str) else p["languages"]
+    p["platforms"]        = json.loads(p["platforms"])        if isinstance(p["platforms"], str)        else p["platforms"]
+    p["languages"]        = json.loads(p["languages"])        if isinstance(p["languages"], str)        else p["languages"]
+    p["reference_images"] = json.loads(p["reference_images"]) if isinstance(p.get("reference_images"), str) else (p.get("reference_images") or [])
     return p
 
 
@@ -367,6 +371,17 @@ def approve_post_transactional(post_id: int, posted_at: str,
         except Exception:
             conn.execute("ROLLBACK")
             raise
+        row = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
+    return _deserialize_post(dict(row)) if row else None
+
+
+def update_post_image(post_id: int, image_filename: str, image_url: str) -> dict | None:
+    with _connect() as conn:
+        conn.execute(
+            "UPDATE posts SET image_filename = ?, image_url = ? WHERE id = ?",
+            (image_filename, image_url, post_id),
+        )
+        conn.commit()
         row = conn.execute("SELECT * FROM posts WHERE id = ?", (post_id,)).fetchone()
     return _deserialize_post(dict(row)) if row else None
 
@@ -490,6 +505,8 @@ def _migrate() -> None:
         ("pipelines", "posts_per_run",        "INTEGER NOT NULL DEFAULT 1"),
         ("pipelines", "caption_prompt",       "TEXT NOT NULL DEFAULT ''"),
         ("pipelines", "image_prompt",         "TEXT NOT NULL DEFAULT ''"),
+        ("pipelines", "workflow_type",        "TEXT NOT NULL DEFAULT 'ai_full'"),
+        ("pipelines", "reference_images",     "TEXT NOT NULL DEFAULT '[]'"),
         ("posts",     "product_description",  "TEXT DEFAULT ''"),
         ("posts",     "caption_prompt_used",  "TEXT DEFAULT ''"),
         ("posts",     "image_prompt_used",    "TEXT DEFAULT ''"),

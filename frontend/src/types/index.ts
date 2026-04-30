@@ -70,9 +70,11 @@ export interface Pipeline {
   post_time: string;
   status: string;
   workflow_configured: boolean;
+  workflow_type: string;
   posts_per_run: number;
   caption_prompt: string;
   image_prompt: string;
+  reference_images: string[];
   created_at: string;
 }
 

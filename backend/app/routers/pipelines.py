@@ -2,6 +2,7 @@ import asyncio
 import logging
 import random
 import re
+from pathlib import Path
 
 from fastapi import APIRouter, Depends, HTTPException
 
@@ -18,7 +19,7 @@ from app.models.schemas import (
 from app.scheduler import add_pipeline, remove_pipeline
 from app.ws_manager import broadcast
 from app.services.gemini_service import generate_caption
-from app.services.image_service import process_product_image
+from app.services.image_service import process_product_image, process_product_image_with_reference
 from app.services.scraper_service import scrape_website
 
 router = APIRouter()
@@ -76,6 +77,7 @@ async def create_new_pipeline(
         languages=payload.languages,
         schedule=payload.schedule,
         post_time=payload.post_time,
+        workflow_type=payload.workflow_type,
     )
     add_pipeline(pipeline)
     return PipelineResponse.from_db(pipeline)
@@ -137,10 +139,7 @@ async def run_pipeline(
     is_test: bool = False,
     current_user: str = Depends(get_current_user),
 ):
-    """
-    Manually trigger a pipeline run:
-      scrape → process first product → generate caption → save as pending post.
-    """
+    """Manually trigger a pipeline run: scrape → image/caption → save as pending post."""
     profile = _assert_profile_owner(profile_id, current_user)
     pipeline = get_pipeline(pipeline_id)
     if not pipeline or pipeline["profile_id"] != profile_id:
@@ -155,9 +154,11 @@ async def run_pipeline(
     image_model       = profile.get("image_model")  or "imagen-4.0-generate-001"
     currency          = profile.get("currency") or ""
     store_description = profile.get("description") or ""
-    posts_per_run   = int(pipeline.get("posts_per_run") or 1)
-    caption_prompt  = pipeline.get("caption_prompt") or ""
-    image_prompt    = pipeline.get("image_prompt") or ""
+    posts_per_run     = int(pipeline.get("posts_per_run") or 1)
+    caption_prompt    = pipeline.get("caption_prompt") or ""
+    image_prompt      = pipeline.get("image_prompt") or ""
+    workflow_type     = pipeline.get("workflow_type") or "ai_full"
+    reference_images  = pipeline.get("reference_images") or []
 
     post_status = "test" if is_test else "pending"
     logger.info(
@@ -180,18 +181,14 @@ async def run_pipeline(
             raise HTTPException(status_code=404, detail="No products found on profile URL.")
 
         await _set_status(pipeline_id, "Fetching product details…", 1)
-        logger.info(
-            "[Pipeline %d] Scraped %d product(s) | site: %s | theme: %s",
-            pipeline_id, len(products), site_title, site_theme[:60],
-        )
+        logger.info("[Pipeline %d] Scraped %d product(s) | site: %s | theme: %s",
+                    pipeline_id, len(products), site_title, site_theme[:60])
 
-        # Apply profile currency override to all scraped product prices
         if currency:
             products = [p.model_copy(update={"price": _apply_currency(p.price, currency)})
                         for p in products]
             logger.info("[Pipeline %d] Currency override applied: %s", pipeline_id, currency)
 
-        # Filter out disabled products
         disabled_urls = get_disabled_product_urls(profile_id)
         if disabled_urls:
             before = len(products)
@@ -202,7 +199,6 @@ async def run_pipeline(
         if not products:
             raise HTTPException(status_code=404, detail="No eligible products (all are disabled).")
 
-        # Randomly pick products for this run
         random.shuffle(products)
 
         created_posts = []
@@ -212,19 +208,41 @@ async def run_pipeline(
                 pipeline_id, idx, posts_per_run, product.name, product.price, len(product.description),
             )
             try:
-                # 2. Process image
-                await _set_status(pipeline_id, f"Generating background image… ({idx}/{posts_per_run})", 2)
-                logger.info("[Pipeline %d] Step 2/4 — Generating background image (model: %s)", pipeline_id, image_model)
-                image_url_path, image_filename, actual_image_prompt = await process_product_image(
-                    product=product,
-                    site_theme=site_theme,
-                    api_key=gemini_key,
-                    image_model=image_model,
-                    image_prompt_override=image_prompt or None,
-                    store_description=store_description,
-                )
-                logger.info("[Pipeline %d] Image saved: %s", pipeline_id, image_filename)
-                record_usage(profile_id, "gemini", "image")
+                # 2. Process image (behaviour depends on workflow_type)
+                if workflow_type == "user_upload":
+                    # No image generation — user uploads image to the pending post later
+                    image_url_path, image_filename, actual_image_prompt = "", "", ""
+                    logger.info("[Pipeline %d] user_upload workflow — skipping image generation", pipeline_id)
+
+                elif workflow_type == "reference_images":
+                    if not reference_images:
+                        raise ValueError("No reference images uploaded for this pipeline.")
+                    await _set_status(pipeline_id, f"Compositing reference image… ({idx}/{posts_per_run})", 2)
+                    ref_filename = random.choice(reference_images)
+                    ref_path = str(
+                        Path(__file__).parent.parent.parent / "static" / "ref_images" / str(pipeline_id) / ref_filename
+                    )
+                    logger.info("[Pipeline %d] Step 2/4 — Using reference image: %s", pipeline_id, ref_filename)
+                    image_url_path, image_filename, actual_image_prompt = await process_product_image_with_reference(
+                        product=product,
+                        reference_image_path=ref_path,
+                        store_description=store_description,
+                    )
+                    logger.info("[Pipeline %d] Image saved: %s", pipeline_id, image_filename)
+
+                else:  # ai_full (default)
+                    await _set_status(pipeline_id, f"Generating background image… ({idx}/{posts_per_run})", 2)
+                    logger.info("[Pipeline %d] Step 2/4 — Generating background image (model: %s)", pipeline_id, image_model)
+                    image_url_path, image_filename, actual_image_prompt = await process_product_image(
+                        product=product,
+                        site_theme=site_theme,
+                        api_key=gemini_key,
+                        image_model=image_model,
+                        image_prompt_override=image_prompt or None,
+                        store_description=store_description,
+                    )
+                    logger.info("[Pipeline %d] Image saved: %s", pipeline_id, image_filename)
+                    record_usage(profile_id, "gemini", "image")
 
                 # 3. Generate caption — blocking network call, run in thread pool
                 await _set_status(pipeline_id, f"Writing post caption… ({idx}/{posts_per_run})", 3)

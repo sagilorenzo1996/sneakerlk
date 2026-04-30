@@ -13,6 +13,7 @@ import {
   approvePost, rejectPost, deletePost, deleteProfile,
   getTrackedProducts, toggleTrackedProduct,
   getConnections, initiateConnection,
+  uploadPostImage,
 } from "@/lib/api";
 import type { Profile, Pipeline, Post, TrackedProduct } from "@/types";
 import PipelineCard from "@/components/PipelineCard";
@@ -254,9 +255,14 @@ export default function ProfileDetailPage() {
     setPipelines((prev) => prev.filter((p) => p.id !== pipelineId));
   }
 
+  async function handleUploadPostImage(postId: number, file: File) {
+    const updated = await uploadPostImage(postId, file);
+    setPosts((prev) => prev.map((p) => p.id === postId ? { ...p, ...updated } : p));
+  }
+
   async function handleSaveWorkflow(pipelineId: number, updates: {
-    workflow_configured: boolean; posts_per_run: number; languages: string[];
-    caption_prompt: string; image_prompt: string;
+    workflow_configured: boolean; workflow_type: string; posts_per_run: number;
+    languages: string[]; caption_prompt: string; image_prompt: string;
   }) {
     const updated = await updatePipeline(profileId, pipelineId, updates);
     setPipelines((prev) => prev.map((p) => (p.id === pipelineId ? updated : p)));
@@ -559,6 +565,7 @@ export default function ProfileDetailPage() {
                 onApprove={() => handleApprove(post.id)}
                 onReject={() => handleReject(post.id)}
                 onDetails={(p) => setDetailsPost(p)}
+                onUploadImage={!post.image_url ? (file) => handleUploadPostImage(post.id, file) : undefined}
               />
             ))}
           </div>

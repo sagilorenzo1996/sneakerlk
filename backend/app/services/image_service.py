@@ -72,6 +72,34 @@ async def process_product_image(product: Product, site_theme: str,
     return f"/static/images/{filename}", filename, image_prompt_used
 
 
+async def process_product_image_with_reference(
+        product: Product,
+        reference_image_path: str,
+        store_description: str = "") -> Tuple[str, str, str]:
+    """
+    Like process_product_image but uses an existing local image as the background
+    instead of generating one with AI.  Returns (static_url_path, filename, "reference").
+    """
+    STATIC_DIR.mkdir(parents=True, exist_ok=True)
+
+    product_img_bytes = await _download_image(product.image_url)
+    product_img = Image.open(io.BytesIO(product_img_bytes)).convert("RGBA")
+
+    fg_img = await asyncio.to_thread(_remove_background, product_img)
+
+    bg_img = await asyncio.to_thread(lambda: Image.open(reference_image_path).convert("RGB"))
+
+    final_img = await asyncio.to_thread(_composite, bg_img, fg_img)
+
+    filename = f"{slugify(product.name)[:40]}_{uuid.uuid4().hex[:8]}.jpg"
+    out_path = STATIC_DIR / filename
+    await asyncio.to_thread(
+        lambda: final_img.convert("RGB").save(str(out_path), format="JPEG", quality=92)
+    )
+
+    return f"/static/images/{filename}", filename, "reference"
+
+
 # ── Step Implementations ──────────────────────────────────────────────────────
 
 async def _download_image(url: str) -> bytes:

@@ -16,8 +16,8 @@ from app.auth_deps import get_current_user
 from app.scheduler import scheduler, load_all_pipelines
 from app.ws_manager import connect as ws_connect, disconnect as ws_disconnect
 from app.routers import (
-    auth, caption, connections, image_processing, pipelines, posts, profiles,
-    publish, scraper, tracked_products,
+    auth, caption, connections, image_processing, pipeline_images, pipelines,
+    posts, profiles, publish, scraper, tracked_products,
 )
 
 # ── Lifespan ──────────────────────────────────────────────────────────────────
@@ -58,6 +58,7 @@ app.add_middleware(
 STATIC_DIR = Path(__file__).parent.parent / "static"
 STATIC_DIR.mkdir(parents=True, exist_ok=True)
 (STATIC_DIR / "images").mkdir(exist_ok=True)
+(STATIC_DIR / "ref_images").mkdir(exist_ok=True)
 
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
@@ -78,6 +79,7 @@ app.include_router(publish.router,          prefix="/api/publish", tags=["Publis
 app.include_router(profiles.router,         prefix="/api/profiles", tags=["Profiles"],         dependencies=_auth)
 app.include_router(connections.router,      prefix="/api/profiles/{profile_id}/connections", tags=["Connections"], dependencies=_auth)
 app.include_router(pipelines.router,        prefix="/api",          tags=["Pipelines"],        dependencies=_auth)
+app.include_router(pipeline_images.router,  prefix="/api",          tags=["Pipeline Images"],  dependencies=_auth)
 app.include_router(posts.router,            prefix="/api",          tags=["Posts"],            dependencies=_auth)
 app.include_router(tracked_products.router, prefix="/api",          tags=["Tracked Products"], dependencies=_auth)
 

@@ -18,13 +18,15 @@ import re
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
+from pathlib import Path
+
 from app.database import (
     get_disabled_product_urls, get_pipelines_by_profile,
     get_profile, get_profiles_by_user, get_users,
     create_post, record_usage,
 )
 from app.services.gemini_service import generate_caption
-from app.services.image_service import process_product_image
+from app.services.image_service import process_product_image, process_product_image_with_reference
 from app.services.scraper_service import scrape_website
 from app.ws_manager import broadcast
 
@@ -68,10 +70,12 @@ async def _run_pipeline(pipeline_id: int) -> None:
     image_model       = profile.get("image_model")  or "imagen-4.0-generate-001"
     currency          = profile.get("currency") or ""
     store_description = profile.get("description") or ""
-    posts_per_run     = int(pipeline.get("posts_per_run") or 1)
-    caption_prompt    = pipeline.get("caption_prompt") or ""
-    image_prompt      = pipeline.get("image_prompt") or ""
-    profile_id        = pipeline["profile_id"]
+    posts_per_run    = int(pipeline.get("posts_per_run") or 1)
+    caption_prompt   = pipeline.get("caption_prompt") or ""
+    image_prompt     = pipeline.get("image_prompt") or ""
+    workflow_type    = pipeline.get("workflow_type") or "ai_full"
+    reference_images = pipeline.get("reference_images") or []
+    profile_id       = pipeline["profile_id"]
 
     logger.info("[Scheduler] Running pipeline %d (profile %d)", pipeline_id, profile_id)
 
@@ -105,17 +109,37 @@ async def _run_pipeline(pipeline_id: int) -> None:
 
         for idx, product in enumerate(products[:posts_per_run], start=1):
             try:
-                await broadcast(pipeline_id, running=True,
-                                step=f"Generating background image… ({idx}/{posts_per_run})", step_index=2)
-                image_url_path, image_filename, actual_image_prompt = await process_product_image(
-                    product=product,
-                    site_theme=site_theme,
-                    api_key=gemini_key,
-                    image_model=image_model,
-                    image_prompt_override=image_prompt or None,
-                    store_description=store_description,
-                )
-                record_usage(profile_id, "gemini", "image")
+                if workflow_type == "user_upload":
+                    image_url_path, image_filename, actual_image_prompt = "", "", ""
+
+                elif workflow_type == "reference_images":
+                    if not reference_images:
+                        logger.error("[Scheduler] Pipeline %d: no reference images, skipping product", pipeline_id)
+                        continue
+                    await broadcast(pipeline_id, running=True,
+                                    step=f"Compositing reference image… ({idx}/{posts_per_run})", step_index=2)
+                    ref_filename = random.choice(reference_images)
+                    ref_path = str(
+                        Path(__file__).parent.parent / "static" / "ref_images" / str(pipeline_id) / ref_filename
+                    )
+                    image_url_path, image_filename, actual_image_prompt = await process_product_image_with_reference(
+                        product=product,
+                        reference_image_path=ref_path,
+                        store_description=store_description,
+                    )
+
+                else:  # ai_full
+                    await broadcast(pipeline_id, running=True,
+                                    step=f"Generating background image… ({idx}/{posts_per_run})", step_index=2)
+                    image_url_path, image_filename, actual_image_prompt = await process_product_image(
+                        product=product,
+                        site_theme=site_theme,
+                        api_key=gemini_key,
+                        image_model=image_model,
+                        image_prompt_override=image_prompt or None,
+                        store_description=store_description,
+                    )
+                    record_usage(profile_id, "gemini", "image")
 
                 await broadcast(pipeline_id, running=True,
                                 step=f"Writing post caption… ({idx}/{posts_per_run})", step_index=3)

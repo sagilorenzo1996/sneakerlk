@@ -3,7 +3,7 @@ echo Starting SocialAuto...
 
 :: Start backend
 echo [1/2] Starting FastAPI backend on port 8000...
-start "SocialAuto Backend" cmd /k "cd /d %~dp0backend && python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
+start "SocialAuto Backend" cmd /k "cd /d %~dp0backend && py -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000"
 
 :: Wait a moment for backend to start
 timeout /t 3 /nobreak > nul

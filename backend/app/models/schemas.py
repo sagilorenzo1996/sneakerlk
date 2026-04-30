@@ -104,6 +104,7 @@ class PipelineCreate(BaseModel):
     languages: List[str] = ["English"]
     schedule: str = "manual"
     post_time: str = "09:00"
+    workflow_type: str = "ai_full"
 
 
 class PipelineUpdate(BaseModel):
@@ -114,9 +115,11 @@ class PipelineUpdate(BaseModel):
     post_time: Optional[str] = None
     status: Optional[str] = None
     workflow_configured: Optional[bool] = None
+    workflow_type: Optional[str] = None
     posts_per_run: Optional[int] = None
     caption_prompt: Optional[str] = None
     image_prompt: Optional[str] = None
+    reference_images: Optional[List[str]] = None
 
 
 class PipelineResponse(BaseModel):
@@ -129,9 +132,11 @@ class PipelineResponse(BaseModel):
     post_time: str
     status: str
     workflow_configured: bool
+    workflow_type: str
     posts_per_run: int
     caption_prompt: str
     image_prompt: str
+    reference_images: List[str]
     created_at: str
 
     @classmethod
@@ -146,9 +151,11 @@ class PipelineResponse(BaseModel):
             post_time=row.get("post_time") or "09:00",
             status=row["status"],
             workflow_configured=bool(row.get("workflow_configured", 0)),
+            workflow_type=row.get("workflow_type") or "ai_full",
             posts_per_run=int(row.get("posts_per_run") or 1),
             caption_prompt=row.get("caption_prompt") or "",
             image_prompt=row.get("image_prompt") or "",
+            reference_images=row.get("reference_images") or [],
             created_at=str(row["created_at"]),
         )
 

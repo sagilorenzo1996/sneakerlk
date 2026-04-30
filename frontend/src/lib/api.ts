@@ -84,8 +84,8 @@ export async function createPipeline(profileId: number, payload: {
 
 export async function updatePipeline(profileId: number, pipelineId: number, payload: Partial<{
   name: string; platforms: string[]; languages: string[]; schedule: string; post_time: string;
-  status: string; workflow_configured: boolean; posts_per_run: number;
-  caption_prompt: string; image_prompt: string;
+  status: string; workflow_configured: boolean; workflow_type: string; posts_per_run: number;
+  caption_prompt: string; image_prompt: string; reference_images: string[];
 }>): Promise<Pipeline> {
   const { data } = await api.put<Pipeline>(
     `/profiles/${profileId}/pipelines/${pipelineId}`, payload
@@ -132,6 +132,38 @@ export async function rejectPost(postId: number): Promise<void> {
 
 export async function deletePost(postId: number): Promise<void> {
   await api.delete(`/posts/${postId}`);
+}
+
+export async function uploadPostImage(postId: number, file: File): Promise<Post> {
+  const form = new FormData();
+  form.append("file", file);
+  const { data } = await api.post<Post>(`/posts/${postId}/image`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data;
+}
+
+// ── Pipeline Reference Images ─────────────────────────────────────────────────
+
+export async function uploadReferenceImages(
+  profileId: number, pipelineId: number, files: File[]
+): Promise<{ added: string[]; filenames: string[] }> {
+  const form = new FormData();
+  files.forEach((f) => form.append("files", f));
+  const { data } = await api.post(
+    `/profiles/${profileId}/pipelines/${pipelineId}/reference-images`,
+    form,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data;
+}
+
+export async function deleteReferenceImage(
+  profileId: number, pipelineId: number, filename: string
+): Promise<void> {
+  await api.delete(
+    `/profiles/${profileId}/pipelines/${pipelineId}/reference-images/${filename}`
+  );
 }
 
 // ── Tracked Products ──────────────────────────────────────────────────────────

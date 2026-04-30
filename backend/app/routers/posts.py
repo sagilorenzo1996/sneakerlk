@@ -1,12 +1,15 @@
 from datetime import datetime
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException
+import uuid
+from pathlib import Path
+
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 
 from app.auth_deps import get_current_user
 from app.database import (
     approve_post_transactional, delete_post, get_post, get_posts_by_profile,
-    get_profile, get_user_by_email, update_post_status,
+    get_profile, get_user_by_email, update_post_status, update_post_image,
 )
 from app.models.schemas import PostResponse, PublishResponse
 from app.services.composio_service import publish_to_platforms
@@ -118,6 +121,33 @@ async def delete_post_endpoint(
     post = _assert_post_owner(post_id, current_user)
     _delete_image_file(post.get("image_filename", ""))
     delete_post(post["id"])
+
+
+@router.post("/posts/{post_id}/image", response_model=PostResponse)
+async def upload_post_image(
+    post_id: int,
+    file: UploadFile = File(...),
+    current_user: str = Depends(get_current_user),
+):
+    """Upload a user-provided image to a pending post (user_upload workflow)."""
+    post = _assert_post_owner(post_id, current_user)
+    if post["status"] not in ("pending", "test"):
+        raise HTTPException(status_code=400, detail="Post is not pending.")
+
+    ext = Path(file.filename).suffix.lower() if file.filename else ".jpg"
+    if ext not in {".jpg", ".jpeg", ".png", ".webp"}:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: {ext}")
+
+    filename = f"upload_{uuid.uuid4().hex[:12]}{ext}"
+    dest = STATIC_IMAGES_DIR / filename
+    STATIC_IMAGES_DIR.mkdir(parents=True, exist_ok=True)
+    dest.write_bytes(await file.read())
+
+    # Delete old image if any
+    _delete_image_file(post.get("image_filename", ""))
+
+    updated = update_post_image(post_id, filename, f"/static/images/{filename}")
+    return PostResponse.from_db(updated)
 
 
 @router.patch("/posts/{post_id}/reject", status_code=204)
